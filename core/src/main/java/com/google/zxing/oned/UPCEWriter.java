@@ -35,11 +35,6 @@ public final class UPCEWriter extends UPCEANWriter {
       (7 * 6) + // bars
       6; // end guard
 
-  public static void main(String[] args) throws Exception {
-    BitMatrix bm = new UPCEWriter().encode("12345670", BarcodeFormat.UPC_E, 200, 100, null);
-    System.out.println(bm);
-  }
-
   @Override
   public BitMatrix encode(String contents,
                           BarcodeFormat format,
@@ -69,7 +64,7 @@ public final class UPCEWriter extends UPCEANWriter {
         break;
       case 8:
         try {
-          if (!UPCEANReader.checkStandardUPCEANChecksum(contents)) {
+          if (!UPCEANReader.checkStandardUPCEANChecksum(UPCEReader.convertUPCEtoUPCA(contents))) {
             throw new IllegalArgumentException("Contents do not pass checksum");
           }
         } catch (FormatException ignored) {
@@ -78,14 +73,16 @@ public final class UPCEWriter extends UPCEANWriter {
         break;
       default:
         throw new IllegalArgumentException(
-            "Requested contents should be 8 digits long, but got " + length);
+            "Requested contents should be 7 or 8 digits long, but got " + length);
     }
+
+    checkNumeric(contents);
 
     int firstDigit = Character.digit(contents.charAt(0), 10);
     if (firstDigit != 0 && firstDigit != 1) {
       throw new IllegalArgumentException("Number system must be 0 or 1");
     }
-      
+
     int checkDigit = Character.digit(contents.charAt(7), 10);
     int parities = UPCEReader.NUMSYS_AND_CHECK_DIGIT_PATTERNS[firstDigit][checkDigit];
     boolean[] result = new boolean[CODE_WIDTH];
@@ -105,5 +102,5 @@ public final class UPCEWriter extends UPCEANWriter {
 
     return result;
   }
-  
+
 }

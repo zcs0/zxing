@@ -35,12 +35,12 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
-import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -185,9 +185,7 @@ final class QRCodeEncoder {
     }
     byte[] vcard;
     String vcardString;
-    InputStream stream = null;
-    try {
-      stream = activity.getContentResolver().openInputStream(uri);
+    try (InputStream stream = activity.getContentResolver().openInputStream(uri)) {
       if (stream == null) {
         throw new WriterException("Can't open stream for " + uri);
       }
@@ -198,17 +196,9 @@ final class QRCodeEncoder {
         baos.write(buffer, 0, bytesRead);
       }
       vcard = baos.toByteArray();
-      vcardString = new String(vcard, 0, vcard.length, "UTF-8");
+      vcardString = new String(vcard, 0, vcard.length, StandardCharsets.UTF_8);
     } catch (IOException ioe) {
       throw new WriterException(ioe);
-    } finally {
-      if (stream != null) {
-        try {
-          stream.close();
-        } catch (IOException e) {
-          // continue
-        }
-      }
     }
     Log.d(TAG, "Encoding share intent content:");
     Log.d(TAG, vcardString);
@@ -247,7 +237,7 @@ final class QRCodeEncoder {
         String phoneData = ContactEncoder.trim(intent.getStringExtra(Intents.Encode.DATA));
         if (phoneData != null) {
           contents = "tel:" + phoneData;
-          displayContents = PhoneNumberUtils.formatNumber(phoneData);
+          displayContents = ContactEncoder.formatPhone(phoneData);
           title = activity.getString(R.string.contents_phone);
         }
         break;
@@ -256,7 +246,7 @@ final class QRCodeEncoder {
         String smsData = ContactEncoder.trim(intent.getStringExtra(Intents.Encode.DATA));
         if (smsData != null) {
           contents = "sms:" + smsData;
-          displayContents = PhoneNumberUtils.formatNumber(smsData);
+          displayContents = ContactEncoder.formatPhone(smsData);
           title = activity.getString(R.string.contents_sms);
         }
         break;

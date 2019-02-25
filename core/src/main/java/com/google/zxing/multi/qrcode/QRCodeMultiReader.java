@@ -92,7 +92,7 @@ public final class QRCodeMultiReader extends QRCodeReader implements MultipleBar
       return EMPTY_RESULT_ARRAY;
     } else {
       results = processStructuredAppend(results);
-      return results.toArray(new Result[results.size()]);
+      return results.toArray(EMPTY_RESULT_ARRAY);
     }
   }
 
@@ -168,13 +168,7 @@ public final class QRCodeMultiReader extends QRCodeReader implements MultipleBar
     public int compare(Result a, Result b) {
       int aNumber = (int) a.getResultMetadata().get(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE);
       int bNumber = (int) b.getResultMetadata().get(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE);
-      if (aNumber < bNumber) {
-        return -1;
-      }
-      if (aNumber > bNumber) {
-        return 1;
-      }
-      return 0;
+      return Integer.compare(aNumber, bNumber);
     }
   }
 

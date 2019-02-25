@@ -51,7 +51,7 @@ public final class SearchBookContentsActivity extends Activity {
 
   private static final String TAG = SearchBookContentsActivity.class.getSimpleName();
 
-  private static final Pattern TAG_PATTERN = Pattern.compile("\\<.*?\\>");
+  private static final Pattern TAG_PATTERN = Pattern.compile("<.*?>");
   private static final Pattern LT_ENTITY_PATTERN = Pattern.compile("&lt;");
   private static final Pattern GT_ENTITY_PATTERN = Pattern.compile("&gt;");
   private static final Pattern QUOTE_ENTITY_PATTERN = Pattern.compile("&#39;");
@@ -97,6 +97,11 @@ public final class SearchBookContentsActivity extends Activity {
     }
 
     isbn = intent.getStringExtra(Intents.SearchBookContents.ISBN);
+    if (isbn == null) {
+      finish();
+      return;
+    }
+
     if (LocaleManager.isBookSearchUrl(isbn)) {
       setTitle(getString(R.string.sbc_name));
     } else {
@@ -175,11 +180,8 @@ public final class SearchBookContentsActivity extends Activity {
         }
         CharSequence content = HttpHelper.downloadViaHttp(uri, HttpHelper.ContentType.JSON);
         return new JSONObject(content.toString());
-      } catch (IOException ioe) {
+      } catch (IOException | JSONException ioe) {
         Log.w(TAG, "Error accessing book search", ioe);
-        return null;
-      } catch (JSONException je) {
-        Log.w(TAG, "Error accessing book search", je);
         return null;
       }
     }
